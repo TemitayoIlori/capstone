@@ -31,39 +31,7 @@ commands:
               npm run migrations:revert
             fi
             
-jobs:
-  build-backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Back-end build
-          command: |
-             cd backend 
-             npm install
-             npm run build
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
-              
-  test-backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - restore_cache:
-          keys: [test-backend]
-      - run:
-          name: Back-end test
-          command: |
-            cd backend
-            npm install
-            npm run test
-            
-  
+jobs:            
   deploy-infrastructure:
     docker:
       - image: amazon/aws-cli
@@ -250,9 +218,7 @@ jobs:
 workflows:
   default:
     jobs:   
-      - build-backend
-      - deploy-infrastructure:
-          requires: [build-backend]
+      - deploy-infrastructure
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
