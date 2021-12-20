@@ -81,7 +81,8 @@ jobs:
               --template-file .circleci/files/backend.yml \
               --tags project=udapeople-backend \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
+              --region=us-west-2
       - run:
           name: Add back-end ip to ansible inventory
           command: |
@@ -89,6 +90,7 @@ jobs:
             --region ${AWS_DEFAULT_REGION} \
             --filters 'Name=tag:project,Values=udapeople-backend' \
             --query 'Reservations[*].Instances[0].PublicIpAddress' \
+            --region=us-west-2 \
             --output text)
             echo "${BACKEND_IP}" >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
@@ -249,13 +251,15 @@ workflows:
   default:
     jobs:   
       - build-backend
-      - deploy-infrastructure
+      - deploy-infrastructure:
+        requires: [build-backend]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
           requires: [configure-infrastructure]
       - deploy-backend:
           requires: [run-migrations]
-      - cloudfront-update
+      - cloudfront-update:
+          requires: [deploy-backend]
       # cleanup:
       #    requires: [cloudfront-update]
